@@ -11,6 +11,8 @@ msg
 library(RMySQL) #package used to connect MySQL with R
 mydb = dbConnect(MySQL(), user='root', password='Incorrect', dbname='data_mining', host='localhost')
 
+## below this line all the text mining is done in windows because tm package is not installing in ubuntu
+
 library(tm)
 mycorpus <- Corpus(VectorSource(msg))
 #making a corpus (used to store the documents/text) ;
@@ -34,3 +36,39 @@ var[2]
 newdata2 <- data.frame(id = id , msg = var)  #making a data frame with refined data
 
 write.csv(newdata2 , file="holala.csv") #write that data to a csv file
+
+
+# above this line all is done in windows
+
+
+
+
+ ref <- read.csv("holala.csv")  #read the table
+  str(ref)
+
+  mydb = dbConnect(MySQL(), user='root', password='Incorrect', dbname='data_mining', host='localhost')
+#reconnection with MySQL
+
+dbWriteTable(mydb, name='proto_table', value=ref) #making a table having the value of new refined data
+
+#now apply some queries....
+
+query1 <- "SELECT count(*) from proto_table where msg like '%c++%'" ;
+
+time2 <- raw$querytime #we also need store the time for future needs
+
+#time2 has many same times so we need just one
+
+time <- time2[2] ;
+
+res <- dbSendQuery(mydb , query1) ;
+
+count_of <- fetch(res , n=-1);
+
+count_of <- count_of[1,1] #because it is a dataframe
+
+#make a data frame of count and date and store it in a table in database
+
+total_cpp <- data.frame(date = time , cpp_count = count_of)
+
+dbWriteTable(mydb , name="proto_total_cpp" , value=total_cpp) ;
